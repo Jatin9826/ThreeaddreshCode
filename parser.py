@@ -1,15 +1,25 @@
+# parser.py
+
+from graphviz import Digraph
+
 class ASTNode:
     def __init__(self, value, left=None, right=None):
         self.value = value
         self.left = left
         self.right = right
 
-precedence = {'+':1, '-':1, '*':2, '/':2, '>':0, '<':0, '>=':0, '<=':0, '=':0}
+# Define operator precedence
+precedence = {
+    '==': 0, '!=': 0, '<': 1, '>': 1, '<=': 1, '>=': 1,
+    '+': 2, '-': 2,
+    '*': 3, '/': 3
+}
 
 def to_postfix(tokens):
-    output, stack = [], []
+    output = []
+    stack = []
     for token in tokens:
-        if token.isalnum() or token.isidentifier():
+        if token.isalnum() or token == '_':
             output.append(token)
         elif token == '(':
             stack.append(token)
@@ -28,15 +38,13 @@ def to_postfix(tokens):
 def build_ast(postfix):
     stack = []
     for token in postfix:
-        if token.isalnum() or token.isidentifier():
+        if token.isalnum() or token == '_':
             stack.append(ASTNode(token))
         else:
             right = stack.pop()
             left = stack.pop()
             stack.append(ASTNode(token, left, right))
     return stack[0]
-
-from graphviz import Digraph
 
 def visualize_ast(node, graph=None, count=[0]):
     if graph is None:
@@ -52,9 +60,31 @@ def visualize_ast(node, graph=None, count=[0]):
         rid = visualize_ast(node.right, graph, count)
         graph.edge(nid, rid)
 
-    return nid if graph else graph
+    return nid
 
 def save_ast_image(ast, filename='ast'):
     graph = Digraph()
     visualize_ast(ast, graph)
     graph.render(filename, format='png', cleanup=True)
+
+
+# if __name__ == "__main__":
+#     # Simple test input
+#     tokens = ['a', '=', 'b', '+', 'c', '*', 'd']
+    
+#     # Convert RHS to postfix (skip '=' at index 1)
+#     postfix = to_postfix(tokens[2:])
+#     print("Postfix:", postfix)
+
+#     # Build AST
+#     ast = build_ast(postfix)
+    
+#     # Save AST image
+#     try:
+#         save_ast_image(ast, "ast_test")
+#         print("✅ AST image generated successfully: ast_test.png")
+#     except Exception as e:
+#         print("❌ Error generating AST image:", e)
+
+
+
